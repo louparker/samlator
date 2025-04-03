@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 31, 41, 55;
+  --background-rgb: 243, 244, 246;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium text-white transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary hover:bg-indigo-600 focus:ring-indigo-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary hover:bg-emerald-600 focus:ring-emerald-500;
+  }
+  
+  .btn-accent {
+    @apply btn bg-accent hover:bg-amber-600 focus:ring-amber-500;
+  }
+  
+  .card {
+    @apply bg-card rounded-xl shadow-md p-6;
+  }
+}

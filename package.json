@@ -1,0 +1,38 @@
+{
+  "name": "samlator",
+  "version": "1.0.0",
+  "description": "SAML testing tool for Service Providers and Identity Providers",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "saml",
+    "testing",
+    "identity",
+    "authentication"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.1",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "@xmldom/xmldom": "^0.9.8",
+    "autoprefixer": "^10.4.21",
+    "next": "^15.2.4",
+    "postcss": "^8.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "saml2-js": "^4.0.3",
+    "samlify": "^2.9.1",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.8.2",
+    "xml-crypto": "^6.0.1",
+    "xml-encryption": "^3.1.0"
+  }
+}
