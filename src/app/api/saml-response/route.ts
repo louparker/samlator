@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processSamlResponse, generateSamlResponse, loadMetadata } from '@/lib/saml';
+import { processSamlResponse, generateSamlResponse, loadMetadata } from '@/services/saml-service';
 
 export async function POST(request: NextRequest) {
   try {

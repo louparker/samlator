@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateSPMetadata, generateIdPMetadata } from '@/lib/saml2-metadata';
-import { getBaseUrl, updateMetadataUrls } from '@/lib/url-utils';
+import { generateSPMetadata, generateIdPMetadata } from '@/services/metadata-service';
+import { getBaseUrl, updateMetadataUrls } from '@/utils/url-helpers';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

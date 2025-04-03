@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveMetadata } from '@/lib/saml';
+import { saveMetadata } from '@/services/saml-service';
 
 export async function POST(request: NextRequest) {
   try {

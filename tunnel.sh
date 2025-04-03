@@ -38,7 +38,7 @@ fi
 # Start ngrok tunnel
 echo "Starting ngrok tunnel to http://localhost:$PORT..."
 echo "IMPORTANT: After ngrok starts, copy the https URL and use it to configure your IdP."
-echo "Your SAMLator metadata URL will be: https://YOUR_NGROK_DOMAIN/api/metadata?type=sp"
+echo "Your SAMLator metadata URL will be: https://YOUR_NGROK_DOMAIN/api/saml-metadata?type=sp"
 
 # Run ngrok
 ngrok http $PORT

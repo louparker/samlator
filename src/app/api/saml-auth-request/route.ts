@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAuthRequest, loadMetadata } from '@/lib/saml';
-import { getBaseUrl, updateMetadataUrls } from '@/lib/url-utils';
+import { generateAuthRequest, loadMetadata } from '@/services/saml-service';
+import { getBaseUrl, updateMetadataUrls } from '@/utils/url-helpers';
 import * as crypto from 'crypto';
 
 export async function GET(request: NextRequest) {

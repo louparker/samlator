@@ -23,7 +23,7 @@ export default function TestIdentityProvider() {
     setRedirectUrl(null);
 
     try {
-      const response = await fetch(`/api/auth-request?idpEntityId=${encodeURIComponent(idpEntityId)}`);
+      const response = await fetch(`/api/saml-auth-request?idpEntityId=${encodeURIComponent(idpEntityId)}`);
       const data = await response.json();
 
       if (!response.ok) {

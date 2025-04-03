@@ -80,7 +80,7 @@ To test with an external IdP while running locally:
    - Start an ngrok tunnel to your local server
    
 4. Use the provided ngrok URL to configure your IdP
-5. The metadata URL will be: `https://YOUR_NGROK_DOMAIN/api/metadata?type=sp`
+5. The metadata URL will be: `https://YOUR_NGROK_DOMAIN/api/saml-metadata?type=sp`
 
 ### Managing Metadata
 

@@ -12,7 +12,7 @@ export default function DownloadMetadata() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/metadata?type=${type}`);
+      const response = await fetch(`/api/saml-metadata?type=${type}`);
       
       if (!response.ok) {
         const errorData = await response.json();
