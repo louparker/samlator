@@ -2,6 +2,7 @@ import { ServiceProvider, IdentityProvider } from 'samlify';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { list } from '@vercel/blob';
 
 // Sample certificates for testing purposes
 export const SAMPLE_CERTIFICATE = `MIIDXTCCAkWgAwIBAgIJALmVVuDWu4NYMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
@@ -165,29 +166,34 @@ export const generateIdPMetadata = () => {
   return idp.getMetadata();
 };
 
-// Save uploaded metadata
-export const saveMetadata = async (metadata: string, type: 'sp' | 'idp') => {
-  if (typeof window !== 'undefined') return; // Only run on server
-  
-  const metadataDir = path.join(process.cwd(), 'metadata');
-  if (!fs.existsSync(metadataDir)) {
-    fs.mkdirSync(metadataDir, { recursive: true });
-  }
-  
-  const filePath = path.join(metadataDir, `${type}-metadata.xml`);
-  fs.writeFileSync(filePath, metadata);
-  return filePath;
-};
-
-// Load saved metadata
+// Load saved metadata from Vercel Blob Storage
 export const loadMetadata = async (type: 'sp' | 'idp') => {
   if (typeof window !== 'undefined') return null; // Only run on server
   
-  const filePath = path.join(process.cwd(), 'metadata', `${type}-metadata.xml`);
-  if (fs.existsSync(filePath)) {
-    return fs.readFileSync(filePath, 'utf8');
+  try {
+    // First check if the blob exists by listing blobs with the prefix
+    const { blobs } = await list({ prefix: `samlator/${type}-metadata.xml` });
+    
+    if (blobs.length === 0) {
+      console.log(`No ${type} metadata found in Vercel Blob Storage`);
+      return null;
+    }
+    
+    // Get the blob content
+    const blobUrl = blobs[0].url;
+    const response = await fetch(blobUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+    }
+    
+    // Get the text content
+    const metadata = await response.text();
+    return metadata;
+  } catch (error) {
+    console.error(`Error loading ${type} metadata from Vercel Blob Storage:`, error);
+    return null;
   }
-  return null;
 };
 
 // Generate a SAML authentication request
@@ -210,14 +216,12 @@ export const generateAuthRequest = async (spMetadata?: string, idpMetadata?: str
       // Create a minimal AuthnRequest that matches the example format
       const minimalRequest = `<?xml version="1.0" encoding="UTF-8"?>
 <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" 
-                     Destination="${destination}" 
-                     ForceAuthn="true"
+                     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
                      ID="${requestId}" 
+                     Version="2.0"
                      IssueInstant="${issueInstant}"
-                     Version="2.0">
-    <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">
-        ${entityId}
-    </saml2:Issuer>
+                     Destination="${destination}">
+    <saml:Issuer>${entityId}</saml:Issuer>
 </saml2p:AuthnRequest>`;
       
       console.log('Generated minimal AuthnRequest:', minimalRequest);
