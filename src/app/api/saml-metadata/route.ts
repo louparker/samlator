@@ -14,14 +14,19 @@ export async function GET(request: NextRequest) {
   }
   
   try {
+    console.log(`Generating ${type} metadata...`);
+    
     // Get the base URL for the application
     const baseUrl = getBaseUrl(request);
+    console.log(`Using base URL: ${baseUrl}`);
     
     // Generate the metadata
     let metadata = type === 'sp' ? generateSPMetadata() : generateIdPMetadata();
     
     // Update URLs in the metadata to use the correct base URL
     metadata = updateMetadataUrls(metadata, baseUrl);
+    
+    console.log(`Successfully generated ${type} metadata`);
     
     return new NextResponse(metadata, {
       status: 200,
@@ -32,8 +37,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error generating metadata:', error);
+    
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error 
+      ? `${error.message}\n${error.stack}` 
+      : 'Unknown error occurred';
+    
+    console.error('Detailed error:', errorMessage);
+    
     return NextResponse.json(
-      { error: 'Failed to generate metadata' },
+      { error: 'Failed to generate metadata', details: errorMessage },
       { status: 500 }
     );
   }
