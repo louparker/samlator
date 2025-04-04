@@ -23,11 +23,23 @@ export function getBaseUrl(req?: Request): string {
         // Check for Host header
         const host = headers.get('host');
         if (host) {
-          // Determine protocol (assume https for ngrok domains)
-          const isNgrok = host.includes('ngrok.io') || host.includes('ngrok-free.app');
-          const protocol = isNgrok ? 'https' : 'http';
+          // Determine protocol (assume https for ngrok and vercel domains)
+          const isSecure = host.includes('ngrok.io') || 
+                          host.includes('ngrok-free.app') || 
+                          host.includes('vercel.app');
+          const protocol = isSecure ? 'https' : 'http';
           return `${protocol}://${host}`;
         }
+      }
+      
+      // Check for VERCEL_URL environment variable (set in Vercel deployments)
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+      
+      // Check for custom domain in environment variables
+      if (process.env.NEXT_PUBLIC_BASE_URL) {
+        return process.env.NEXT_PUBLIC_BASE_URL;
       }
     } catch (error) {
       console.error('Error getting headers:', error);
@@ -48,8 +60,14 @@ export function getBaseUrl(req?: Request): string {
  * @returns Updated metadata XML
  */
 export function updateMetadataUrls(metadata: string, baseUrl: string): string {
+  // Remove trailing slash if present
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  
+  // Log the URL replacement for debugging
+  console.log(`Replacing placeholder URLs with: ${normalizedBaseUrl}`);
+  
   // Replace example.com URLs with the actual base URL
   return metadata
-    .replace(/https:\/\/samlator\.example\.com/g, baseUrl)
-    .replace(/http:\/\/samlator\.example\.com/g, baseUrl);
+    .replace(/https:\/\/samlator\.example\.com/g, normalizedBaseUrl)
+    .replace(/http:\/\/samlator\.example\.com/g, normalizedBaseUrl);
 }

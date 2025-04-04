@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function TestIdentityProvider() {
@@ -11,6 +11,35 @@ export default function TestIdentityProvider() {
   const [validationResult, setValidationResult] = useState<any>(null);
   const [idpEntityId, setIdpEntityId] = useState('');
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [metadataFileName, setMetadataFileName] = useState<string | null>(null);
+  const [loadingMetadata, setLoadingMetadata] = useState(true);
+
+  // Load IdP metadata on component mount
+  useEffect(() => {
+    const fetchIdpMetadata = async () => {
+      try {
+        setLoadingMetadata(true);
+        const response = await fetch('/api/saml-metadata?type=idp');
+        
+        if (response.ok) {
+          const metadata = await response.text();
+          
+          // Extract the entity ID from the metadata
+          const entityIdMatch = metadata.match(/entityID="([^"]+)"/);
+          if (entityIdMatch && entityIdMatch[1]) {
+            setIdpEntityId(entityIdMatch[1]);
+            setMetadataFileName('idp-metadata.xml');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading IdP metadata:', error);
+      } finally {
+        setLoadingMetadata(false);
+      }
+    };
+
+    fetchIdpMetadata();
+  }, []);
 
   const generateAuthRequest = async () => {
     if (!idpEntityId) {
@@ -106,12 +135,18 @@ export default function TestIdentityProvider() {
         
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">IdP Entity ID</label>
+          {metadataFileName && (
+            <div className="text-sm text-green-600 mb-2">
+              Pre-filled from uploaded metadata: <span className="font-medium">{metadataFileName}</span>
+            </div>
+          )}
           <input
             type="text"
             value={idpEntityId}
             onChange={(e) => setIdpEntityId(e.target.value)}
             className="w-full p-2 border rounded focus:ring-2 focus:ring-secondary focus:border-secondary"
-            placeholder="e.g., https://your-idp.example.com"
+            placeholder={loadingMetadata ? "Loading metadata..." : "e.g., https://your-idp.example.com"}
+            disabled={loadingMetadata}
           />
           <p className="mt-1 text-sm text-gray-500">
             This should match the entityID from your IdP metadata
@@ -120,7 +155,7 @@ export default function TestIdentityProvider() {
         
         <button
           onClick={generateAuthRequest}
-          disabled={loading}
+          disabled={loading || loadingMetadata}
           className="btn-secondary w-full"
         >
           {loading ? 'Generating...' : 'Generate Authentication Request'}

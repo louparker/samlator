@@ -212,19 +212,26 @@ export const generateAuthRequest = async (spMetadata?: string, idpMetadata?: str
       const issueInstant = new Date().toISOString();
       const destination = idpEntityId ? `${idpEntityId}/sso` : 'https://your-idp.example.com/sso';
       const entityId = sp.entityMeta.getEntityID();
+      const acsUrl = `${entityId}/acs`;
       
-      // Create a minimal AuthnRequest that matches the example format
-      const minimalRequest = `<?xml version="1.0" encoding="UTF-8"?>
-<saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" 
-                     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-                     ID="${requestId}" 
-                     Version="2.0"
-                     IssueInstant="${issueInstant}"
-                     Destination="${destination}">
-    <saml:Issuer>${entityId}</saml:Issuer>
-</saml2p:AuthnRequest>`;
+      // Create an AuthnRequest that matches the example format
+      const standardRequest = `<?xml version="1.0" encoding="UTF-8"?>
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
+                   AssertionConsumerServiceURL="${acsUrl}" 
+                   Destination="${destination}" 
+                   ForceAuthn="false" 
+                   ID="${requestId}" 
+                   IsPassive="false" 
+                   IssueInstant="${issueInstant}" 
+                   ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
+                   Version="2.0" 
+                   xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">
+    <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">
+        ${entityId}
+    </saml:Issuer>
+</samlp:AuthnRequest>`;
       
-      console.log('Generated minimal AuthnRequest:', minimalRequest);
+      console.log('Generated standard AuthnRequest:', standardRequest);
       
       // Return the original request from the library
       return loginRequest.context;

@@ -2,6 +2,7 @@ import * as saml2 from 'saml2-js';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ServiceProvider, IdentityProvider } from 'samlify';
 
 // Function to read certificate and key files
 function readCertificates() {
@@ -90,11 +91,37 @@ const formatCertForXml = (cert: string) => {
     .replace(/\n/g, '');
 };
 
-// Generate SP metadata
+// Generate SP metadata with placeholder URLs that will be replaced later
 export const generateSPMetadata = () => {
-  // Create metadata XML
-  const metadata = `<?xml version="1.0" encoding="UTF-8"?>
-<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" ID="_${crypto.randomBytes(16).toString('hex')}"
+  try {
+    // Create a ServiceProvider instance with signing enabled
+    const sp = ServiceProvider({
+      entityID: 'https://samlator.example.com/sp',
+      authnRequestsSigned: true,
+      wantAssertionsSigned: true,
+      signingCert: certificates.spSigningCert,
+      privateKey: certificates.spSigningKey,
+      encryptCert: certificates.spEncryptionCert,
+      privateKeyPass: '',
+      assertionConsumerService: [{
+        Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+        Location: 'https://samlator.example.com/sp/acs',
+        isDefault: true,
+      }]
+    });
+    
+    // Generate metadata with signatures
+    const metadata = sp.getMetadata();
+    console.log('Generated signed SP metadata');
+    
+    return metadata;
+  } catch (error) {
+    console.error('Error generating SP metadata:', error);
+    
+    // Fallback to basic metadata without signatures
+    const metadataId = `_${crypto.randomBytes(16).toString('hex')}`;
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" ID="${metadataId}"
                      entityID="https://samlator.example.com/sp">
     <md:SPSSODescriptor AuthnRequestsSigned="true" WantAssertionsSigned="true"
                         protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
@@ -126,15 +153,40 @@ export const generateSPMetadata = () => {
         <md:OrganizationURL xml:lang="en">https://samlator.example.com</md:OrganizationURL>
     </md:Organization>
 </md:EntityDescriptor>`;
-  
-  return metadata;
+  }
 };
 
-// Generate IdP metadata
+// Generate IdP metadata with placeholder URLs that will be replaced later
 export const generateIdPMetadata = () => {
-  // Create metadata XML
-  const metadata = `<?xml version="1.0" encoding="UTF-8"?>
-<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" ID="_${crypto.randomBytes(16).toString('hex')}"
+  try {
+    // Create an IdentityProvider instance with signing enabled
+    const idp = IdentityProvider({
+      entityID: 'https://samlator.example.com/idp',
+      signingCert: certificates.idpSigningCert,
+      privateKey: certificates.idpSigningKey,
+      privateKeyPass: '',
+      singleSignOnService: [{
+        Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+        Location: 'https://samlator.example.com/idp/sso'
+      }],
+      singleLogoutService: [{
+        Binding: 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+        Location: 'https://samlator.example.com/idp/slo'
+      }]
+    });
+    
+    // Generate metadata with signatures
+    const metadata = idp.getMetadata();
+    console.log('Generated signed IdP metadata');
+    
+    return metadata;
+  } catch (error) {
+    console.error('Error generating IdP metadata:', error);
+    
+    // Fallback to basic metadata without signatures
+    const metadataId = `_${crypto.randomBytes(16).toString('hex')}`;
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" ID="${metadataId}"
                      entityID="https://samlator.example.com/idp">
     <md:IDPSSODescriptor WantAuthnRequestsSigned="true"
                          protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
@@ -158,6 +210,5 @@ export const generateIdPMetadata = () => {
         <md:OrganizationURL xml:lang="en">https://samlator.example.com</md:OrganizationURL>
     </md:Organization>
 </md:EntityDescriptor>`;
-  
-  return metadata;
+  }
 };
